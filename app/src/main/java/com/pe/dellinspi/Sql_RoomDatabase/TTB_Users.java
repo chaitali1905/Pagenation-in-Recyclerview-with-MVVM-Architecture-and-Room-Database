@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
 @Entity
 public class TTB_Users {
 
-    @PrimaryKey() @NonNull
+    @PrimaryKey @NonNull
     @ColumnInfo(name = "userId")
     private int id;
 
@@ -22,30 +22,10 @@ public class TTB_Users {
     @ColumnInfo(name = "userImage")
     private String avatar;
 
-    @Ignore
-    private boolean isSelected;
-
-    public boolean isSelected() {
-        return isSelected;
-    }
-
-    public void setSelected(boolean selected) {
-        isSelected = selected;
-    }
-
-    public TTB_Users(String first_name, String last_name, String avatar, boolean isSelected) {
-        this.first_name = first_name;
-        this.last_name = last_name;
-        this.avatar = avatar;
-        this.isSelected = isSelected;
-    }
+    private int pageNo;
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getFirst_name() {
@@ -58,5 +38,28 @@ public class TTB_Users {
 
     public String getAvatar() {
         return avatar;
+    }
+
+    public int getPageNo() {
+        return pageNo;
+    }
+
+    @Ignore
+    private boolean isSelected;
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
+    public TTB_Users(String first_name, String last_name, String avatar, boolean isSelected, int pageNo) {
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.avatar = avatar;
+        this.isSelected = isSelected;
+        this.pageNo = pageNo;
     }
 }
