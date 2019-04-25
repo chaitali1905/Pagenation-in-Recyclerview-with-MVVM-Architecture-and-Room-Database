@@ -24,6 +24,17 @@ public class TTB_Users {
 
     private int pageNo;
 
+    @Ignore
+    private boolean isSelected;
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
     public int getId() {
         return id;
     }
@@ -44,22 +55,12 @@ public class TTB_Users {
         return pageNo;
     }
 
-    @Ignore
-    private boolean isSelected;
-
-    public boolean isSelected() {
-        return isSelected;
-    }
-
-    public void setSelected(boolean selected) {
-        isSelected = selected;
-    }
-
-    public TTB_Users(String first_name, String last_name, String avatar, boolean isSelected, int pageNo) {
+    public TTB_Users(@NonNull int id, String first_name, String last_name, String avatar, int pageNo, boolean isSelected) {
+        this.id = id;
         this.first_name = first_name;
         this.last_name = last_name;
         this.avatar = avatar;
-        this.isSelected = isSelected;
         this.pageNo = pageNo;
+        this.isSelected = isSelected;
     }
 }
