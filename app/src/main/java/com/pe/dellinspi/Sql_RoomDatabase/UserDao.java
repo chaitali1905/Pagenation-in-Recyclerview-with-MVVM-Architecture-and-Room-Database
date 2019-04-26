@@ -11,7 +11,7 @@ import java.util.List;
 public interface UserDao {
 
     @Insert
-    boolean insertUsers(List<TTB_Users> ttb_users);
+    Boolean insertUsers(TTB_Users ttb_users);
 
     @Query("SELECT * FROM TTB_Users WHERE pageNo = :pageNum ORDER BY userId ASC")
     LiveData<List<TTB_Users>> getAllUsers(int pageNum);
