@@ -29,7 +29,6 @@ import com.pe.dellinspi.RetrofitUtilityFiles.ResponseObject;
 import com.pe.dellinspi.RetrofitUtilityFiles.RetrofitBaseClass;
 import com.pe.dellinspi.RetrofitUtilityFiles.UserObject;
 import com.pe.dellinspi.Sql_RoomDatabase.TTB_Users;
-import com.pe.dellinspi.UserViewModel.MyViewModelFactory;
 import com.pe.dellinspi.UserViewModel.UserListViewModel;
 
 import java.util.ArrayList;
@@ -51,12 +50,17 @@ public class MainActivity extends AppCompatActivity {
 
     TextView pageNoLoaded;
     RecyclerView userList;
-    private String pageDefaultText = "Page No : ";
+    private String pageDefaultText = "Page Loaded : ";
     private int currentPageNo = 1, currentVisibleItems, totalItems, scrollOutItems;
     private boolean isLoadMore = true, isScrolling = false;
     public UserListViewModel userViewModel;
     ProgressBar loadMoreProgress;
     LinearLayoutManager linearLayoutManager;
+
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
+    private int TOTAL_PAGES = 4;
+    private int currentPage = 1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,16 +84,46 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onChanged(@Nullable List<TTB_Users> ttb_users) {
                     adapter.setData(ttb_users);
+                    if (currentPage == TOTAL_PAGES) {
+                        isLastPage = true;
+                    }
+                    isLoading = false;
+                    loadMoreProgress.setVisibility(View.GONE);
                 }
             });
         }
         if (isConnectedToInternet()) {
-            getUsersPageWise(currentPageNo);
+            getUsersPageWise(currentPage);
         } else {
-            Toast.makeText(getApplicationContext(),"No Internet Connection",Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_LONG).show();
         }
 
-        userList.setOnScrollListener(new RecyclerView.OnScrollListener() {
+        userList.addOnScrollListener(new PaginationScrollListener(linearLayoutManager) {
+            @Override
+            protected void loadMoreItems() {
+                isLoading = true;
+                currentPage += 1;
+                getUsersPageWise(currentPage);
+            }
+
+            @Override
+            public int getTotalPageCount() {
+                return TOTAL_PAGES;
+            }
+
+            @Override
+            public boolean isLastPage() {
+                return isLastPage;
+            }
+
+            @Override
+            public boolean isLoading() {
+                return isLoading;
+            }
+        });
+
+
+/*userList.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -124,13 +158,13 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("state", "Calculation not same");
                 }
             }
-        });
-
+        });*/
     }
 
     // FETCH RESPONSE FROM API
     private void getUsersPageWise(final int currentPageNo) {
-        if(isLoadMore){
+        loadMoreProgress.setVisibility(View.VISIBLE);
+        if (isLoadMore) {
             Toast.makeText(getApplicationContext(), "Loading Page" + currentPageNo + " users", Toast.LENGTH_LONG).show();
             GetUsers RETROFIT_USER = RetrofitBaseClass.getRetrofitClient(this).create(GetUsers.class);
 
@@ -148,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                         }
-                        pageNoLoaded.setText(pageDefaultText + responseObject.getPage());
+                        pageNoLoaded.setText(pageDefaultText + responseObject.getPage() + "/" + responseObject.getTotal_pages());
                         if (responseObject != null && responseObject.getData() != null && responseObject.getData().size() != 0) {
                             saveData(responseObject.getData());
                         }
@@ -158,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e("ERR_RESPONSE", t.getMessage() + "...");
-                    if(t.getMessage().equals("timeout")){
+                    if (t.getMessage().equals("timeout")) {
                         getUsersPageWise(currentPageNo);
                     }
                 }
@@ -177,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(getApplicationContext(), "VM Null", Toast.LENGTH_LONG).show();
             }
-            Log.e("state","Saving Data to db");
+            Log.e("state", "Saving Data to db");
         }
     }
 
