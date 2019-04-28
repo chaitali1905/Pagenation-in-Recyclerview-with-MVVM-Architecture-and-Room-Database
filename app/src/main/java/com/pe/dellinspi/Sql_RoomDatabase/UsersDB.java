@@ -10,7 +10,7 @@ public abstract class UsersDB extends RoomDatabase {
 
     public abstract UserDao userDao(); // EVERY UPPER LAYER HAS A REFERENCE TO ITS LOWER LEVEL IN ARCHITECTURE.
     public static UsersDB instance;
-    public static UsersDB getInstance(Application application) {
+    public static synchronized UsersDB getInstance(Application application) {
         if (instance == null){
             instance = Room.databaseBuilder(application, UsersDB.class, "udb").build();
         }

@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -51,14 +52,10 @@ public class MainActivity extends AppCompatActivity {
     TextView pageNoLoaded;
     RecyclerView userList;
     private String pageDefaultText = "Page No : ";
-    private int currentPageNo = 1;
-    private boolean isLoadMore = true;
+    private int currentPageNo = 1, currentVisibleItems, totalItems, scrollOutItems;
+    private boolean isLoadMore = true, isScrolling = false;
     public UserListViewModel userViewModel;
-
     ProgressBar loadMoreProgress;
-    private Boolean isFirstLoad = true;
-    private Boolean isScrolling = false;
-    int currentItem, totalItems, scrollOutItems;
     LinearLayoutManager linearLayoutManager;
 
     @Override
@@ -70,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
         pageNoLoaded = (TextView) findViewById(R.id.pageNoLoaded);
         userList = (RecyclerView) findViewById(R.id.userList);
         loadMoreProgress = (ProgressBar) findViewById(R.id.loadMoreProgress);
-        loadMoreProgress.setVisibility(View.GONE);
 
         // SET RECYCLER VIEW
         linearLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -78,72 +74,110 @@ public class MainActivity extends AppCompatActivity {
         final MyAdapter adapter = new MyAdapter();
         userList.setAdapter(adapter);
 
-        userViewModel = ViewModelProviders.of(this, new MyViewModelFactory(this.getApplication())).get(UserListViewModel.class);
-        if(userViewModel != null){
+        userViewModel = ViewModelProviders.of(this).get(UserListViewModel.class);
+        if (userViewModel != null) {
             userViewModel.getAllUsers().observe(this, new Observer<List<TTB_Users>>() {
                 @Override
                 public void onChanged(@Nullable List<TTB_Users> ttb_users) {
-                    // SET LIST
-                    Toast.makeText(getApplicationContext(),"Some Changes Occurred",Toast.LENGTH_LONG).show();
                     adapter.setData(ttb_users);
                 }
             });
         }
-
         if (isConnectedToInternet()) {
             getUsersPageWise(currentPageNo);
         } else {
-            // Check if users are present in database
+            Toast.makeText(getApplicationContext(),"No Internet Connection",Toast.LENGTH_LONG).show();
         }
+
+        userList.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    isScrolling = true;
+                    Log.e("state", "isScrolling" + isScrolling + "...");
+                }
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                Toast.makeText(getApplicationContext(),"Fetching Further Data",Toast.LENGTH_LONG).show();
+                currentVisibleItems = linearLayoutManager.getChildCount();
+                totalItems = linearLayoutManager.getItemCount();
+                scrollOutItems = linearLayoutManager.findFirstVisibleItemPosition();
+
+                Log.e("state", "currentVisibleItems" + currentVisibleItems);
+                Log.e("state", "totalItems" + totalItems);
+                Log.e("state", "scrollOutItems" + scrollOutItems);
+
+                Log.e("state", "isScrolling" + isScrolling + "...");
+
+                Log.e("state", "In is Scroll");
+                if ((currentVisibleItems + scrollOutItems) == totalItems) {
+                    Log.e("state", "Calculation is same");
+                    isScrolling = false;
+                    currentPageNo = currentPageNo + 1;
+                    Log.e("state", "currentPageNo" + currentPageNo);
+                    getUsersPageWise(currentPageNo);
+                } else {
+                    Log.e("state", "Calculation not same");
+                }
+            }
+        });
 
     }
 
     // FETCH RESPONSE FROM API
     private void getUsersPageWise(final int currentPageNo) {
-        Toast.makeText(getApplicationContext(), "Loading Page" + currentPageNo + " users", Toast.LENGTH_LONG).show();
-        GetUsers RETROFIT_USER = RetrofitBaseClass.getRetrofitClient(this).create(GetUsers.class);
+        if(isLoadMore){
+            Toast.makeText(getApplicationContext(), "Loading Page" + currentPageNo + " users", Toast.LENGTH_LONG).show();
+            GetUsers RETROFIT_USER = RetrofitBaseClass.getRetrofitClient(this).create(GetUsers.class);
 
-        Call<ResponseObject> call = RETROFIT_USER.getUsers(currentPageNo);
-        call.enqueue(new Callback<ResponseObject>() {
-            @Override
-            public void onResponse(Call<ResponseObject> call, retrofit2.Response<ResponseObject> response) {
-                Toast.makeText(getApplicationContext(), "Loaded " + currentPageNo + " users", Toast.LENGTH_LONG).show();
-                if (response != null) {
-                    ResponseObject responseObject = response.body();
-                    pageNoLoaded.setText(pageDefaultText + responseObject.getPage());
-                    if (responseObject.getTotal_pages() != null && responseObject.getTotal_pages().equals("")) {
-                        if (currentPageNo == Integer.parseInt(responseObject.getTotal_pages())) {
-                            isLoadMore = false;
+            Call<ResponseObject> call = RETROFIT_USER.getUsers(currentPageNo);
+            call.enqueue(new Callback<ResponseObject>() {
+                @Override
+                public void onResponse(Call<ResponseObject> call, retrofit2.Response<ResponseObject> response) {
+                    //Toast.makeText(getApplicationContext(), "Loaded " + currentPageNo + " users", Toast.LENGTH_LONG).show();
+                    if (response != null) {
+                        ResponseObject responseObject = response.body();
+                        if (responseObject != null && responseObject.getTotal_pages() != null && responseObject.getTotal_pages().equals("")) {
+                            if (Integer.parseInt(responseObject.getPage()) >= Integer.parseInt(responseObject.getTotal_pages())) {
+                                Toast.makeText(getApplicationContext(), "Loaded " + "Maximum Available" + " users", Toast.LENGTH_LONG).show();
+                                isLoadMore = false;
+                                return;
+                            }
                         }
-                    }
-                    if (responseObject.getData() != null && responseObject.getData().size() != 0) {
-                        try {
-                            saveData(responseObject.getData(), currentPageNo);
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        pageNoLoaded.setText(pageDefaultText + responseObject.getPage());
+                        if (responseObject != null && responseObject.getData() != null && responseObject.getData().size() != 0) {
+                            saveData(responseObject.getData());
                         }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call call, Throwable t) {
-                Log.e("ERR_RESPONSE", t.getMessage() + "...");
-            }
-        });
+                @Override
+                public void onFailure(Call call, Throwable t) {
+                    Log.e("ERR_RESPONSE", t.getMessage() + "...");
+                    if(t.getMessage().equals("timeout")){
+                        getUsersPageWise(currentPageNo);
+                    }
+                }
+            });
+        } else {
+            Toast.makeText(getApplicationContext(), "Loaded " + "Maximum Available" + " users", Toast.LENGTH_LONG).show();
+        }
     }
 
-    private void saveData(List<UserObject> data, int pageNo) throws ExecutionException, InterruptedException {
+    private void saveData(List<UserObject> data) {
         for (int i = 0; i < data.size(); i++) {
             UserObject userObject = data.get(i);
-            if(userViewModel != null){
+            if (userViewModel != null) {
                 userViewModel.insertUser(new TTB_Users(Integer.parseInt(userObject.getId()), userObject.getFirst_name(), userObject.getLast_name(),
                         userObject.getAvatar(), false));
             } else {
-                Toast.makeText(getApplicationContext(),"VM Null",Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "VM Null", Toast.LENGTH_LONG).show();
             }
+            Log.e("state","Saving Data to db");
         }
     }
 
@@ -151,7 +185,8 @@ public class MainActivity extends AppCompatActivity {
     private class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         List<TTB_Users> list = new ArrayList<>();
 
-        public MyAdapter(){}
+        public MyAdapter() {
+        }
 
         public void setData(List<TTB_Users> list) {
             this.list = list;
