@@ -1,4 +1,4 @@
-package com.pe.dellinspi.ViewModel;
+package com.pe.dellinspi.UserViewModel;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
@@ -13,18 +13,20 @@ import java.util.concurrent.ExecutionException;
 
 public class UserListViewModel extends AndroidViewModel {
     private UserRepository userRepository;
+    LiveData<List<TTB_Users>> allUsers;
 
     public UserListViewModel(@NonNull Application application) {
         super(application);
         userRepository = new UserRepository(application);
+        allUsers = userRepository.getAllUsers();
     }
 
-    public boolean insertUser(TTB_Users... ttb_users) throws ExecutionException, InterruptedException {
-        return userRepository.insertUserRepo(ttb_users);
+    public void insertUser(TTB_Users... ttb_users) {
+        userRepository.insertUserRepo(ttb_users);
     }
 
-    public LiveData<List<TTB_Users>> getAllUsers(int pageNo) throws ExecutionException, InterruptedException {
-        return userRepository.getAllUsers(pageNo);
+    public LiveData<List<TTB_Users>> getAllUsers() {
+        return allUsers;
     }
 
 }

@@ -11,10 +11,10 @@ import java.util.List;
 public interface UserDao {
 
     @Insert
-    Boolean insertUsers(TTB_Users ttb_users);
+    void insertUsers(TTB_Users ttb_users);
 
-    @Query("SELECT * FROM TTB_Users WHERE pageNo = :pageNum ORDER BY userId ASC")
-    LiveData<List<TTB_Users>> getAllUsers(int pageNum);
+    @Query("SELECT * FROM TTB_Users ORDER BY userId ASC")
+    LiveData<List<TTB_Users>> getAllUsers();
 
     @Query("SELECT * FROM TTB_Users WHERE userId = :uid LIMIT 1")
     TTB_Users getUserDetails(int uid);

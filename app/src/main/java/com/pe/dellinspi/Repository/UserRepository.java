@@ -18,43 +18,32 @@ public class UserRepository {
     public UserRepository(Application application){
         UsersDB usersDB = UsersDB.getInstance(application);
         userDao = usersDB.userDao();
+        allUsers = userDao.getAllUsers();
     }
 
     // INSERT USERS
 
-    public boolean insertUserRepo(TTB_Users... ttbUsers) throws ExecutionException, InterruptedException {
-        new insertAsyncTask(userDao).execute(ttbUsers).get();
-        return false;
+    public void insertUserRepo(TTB_Users... ttbUsers) {
+        new insertAsyncTask(userDao).execute(ttbUsers);
     }
 
-    private static class insertAsyncTask extends AsyncTask<TTB_Users, Void, Boolean> {
+    private static class insertAsyncTask extends AsyncTask<TTB_Users, Void, Void> {
         UserDao userDao;
         insertAsyncTask(UserDao dao) {
             this.userDao = dao;
         }
 
         @Override
-        protected Boolean doInBackground(TTB_Users... ttbUsers) {
-            return userDao.insertUsers(ttbUsers[0]);
+        protected Void doInBackground(TTB_Users... ttbUsers) {
+           userDao.insertUsers(ttbUsers[0]);
+            return null;
         }
     }
 
     // GET ALL USERS
 
-    public LiveData<List<TTB_Users>> getAllUsers(int pgNo) throws ExecutionException, InterruptedException {
-        return new getUsersAsyncTask(userDao).execute(pgNo).get();
-    }
-
-    private static class getUsersAsyncTask extends AsyncTask<Integer, Void, LiveData<List<TTB_Users>>> {
-        UserDao userDao;
-        getUsersAsyncTask(UserDao dao) {
-            this.userDao = dao;
-        }
-
-        @Override
-        protected LiveData<List<TTB_Users>> doInBackground(Integer... integers) {
-            return userDao.getAllUsers(integers[0]);
-        }
+    public LiveData<List<TTB_Users>> getAllUsers(){
+        return allUsers;
     }
 
 }

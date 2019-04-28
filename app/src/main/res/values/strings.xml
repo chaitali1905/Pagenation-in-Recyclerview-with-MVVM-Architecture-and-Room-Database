@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PagenationMVVM</string>
+    <string name="imageDescription">Users Image</string>
 </resources>
