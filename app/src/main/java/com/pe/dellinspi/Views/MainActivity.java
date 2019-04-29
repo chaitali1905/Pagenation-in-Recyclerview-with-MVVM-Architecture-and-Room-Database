@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             userViewModel.getAllUsers().observe(this, new Observer<List<TTB_Users>>() {
                 @Override
                 public void onChanged(@Nullable List<TTB_Users> ttb_users) {
-                    if(ttb_users != null && ttb_users.size() != 0){
+                    if (ttb_users != null && ttb_users.size() != 0) {
                         adapter.setData(ttb_users);
                         userList.setVisibility(View.VISIBLE);
                         noDataTv.setVisibility(View.GONE);
@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onResponse(Call<ResponseObject> call, retrofit2.Response<ResponseObject> response) {
                     if (response != null) {
                         ResponseObject responseObject = response.body();
-                        pageNoLoaded.setText(pageDefaultText + responseObject.getPage() + "/" + responseObject.getTotal_pages());
                         if (responseObject != null && responseObject.getData() != null && responseObject.getData().size() != 0) {
                             try {
                                 saveData(responseObject.getData());
@@ -162,11 +161,15 @@ public class MainActivity extends AppCompatActivity {
                         if (responseObject != null && responseObject.getTotal_pages() != null && !responseObject.getTotal_pages().equals("") && responseObject.getPage() != null && !responseObject.getPage().equals("")) {
                             if (Integer.parseInt(responseObject.getPage()) >= Integer.parseInt(responseObject.getTotal_pages())) {
                                 isLoadMore = false;
+                                loadMoreProgress.setVisibility(View.GONE);
+                                return;
                             }
                         }
                         loadMoreProgress.setVisibility(View.GONE);
+                        pageNoLoaded.setText(pageDefaultText + responseObject.getPage() + "/" + responseObject.getTotal_pages());
                     }
                 }
+
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e("ERR_RESPONSE", t.getMessage() + "...");
@@ -179,20 +182,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TRY AGAIN POP UP
-    public void showTryAgainAlert(final int currentPageNo){
+    public void showTryAgainAlert(final int currentPageNo) {
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setTitle("Alert");
         alertDialog.setCancelable(false);
         alertDialog.setMessage("Taking too much time to fetch users. Please Try Again.");
         alertDialog.setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
+            public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
                 getUsersPageWise(currentPageNo);
             }
         });
         alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
+                if(linearLayoutManager.getItemCount() != 0){
+                    loadMoreProgress.setVisibility(View.GONE);
+                } else {
+                    userList.setVisibility(View.GONE);
+                    noDataTv.setText("Taking too much time to fetch users. Please Try Again later.");
+                    noDataTv.setVisibility(View.VISIBLE);
+                }
                 dialog.dismiss();
             }
         });
@@ -204,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < data.size(); i++) {
             UserObject userObject = data.get(i);
             if (userViewModel != null) {
-                if(userViewModel.getUser(Integer.parseInt(userObject.getId())) == null){
+                if (userViewModel.getUser(Integer.parseInt(userObject.getId())) == null) {
                     userViewModel.insertUser(new TTB_Users(Integer.parseInt(userObject.getId()), userObject.getFirst_name(), userObject.getLast_name(),
                             userObject.getAvatar(), false));
                 }
@@ -215,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
     // RECYCLERVIEW ADAPTER
     private class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         List<TTB_Users> list = new ArrayList<>();
+
         public MyAdapter() {
         }
 
@@ -244,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
             holder.getDetailsLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                   startActivity(new Intent(MainActivity.this,UserDetailsActivity.class).putExtra("uid",user.getId()));
+                    startActivity(new Intent(MainActivity.this, UserDetailsActivity.class).putExtra("uid", user.getId()));
                 }
             });
         }

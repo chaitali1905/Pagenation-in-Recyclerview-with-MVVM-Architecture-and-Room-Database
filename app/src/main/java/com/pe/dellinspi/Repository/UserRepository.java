@@ -30,11 +30,9 @@ public class UserRepository {
 
     private static class insertAsyncTask extends AsyncTask<TTB_Users, Void, Void> {
         UserDao userDao;
-
         insertAsyncTask(UserDao dao) {
             this.userDao = dao;
         }
-
         @Override
         protected Void doInBackground(TTB_Users... ttbUsers) {
             userDao.insertUsers(ttbUsers[0]);
@@ -56,11 +54,9 @@ public class UserRepository {
 
     private static class getUser extends AsyncTask<Integer, Void, TTB_Users> {
         UserDao userDao;
-
         public getUser(UserDao userDao) {
             this.userDao = userDao;
         }
-
         @Override
         protected TTB_Users doInBackground(Integer... integers) {
             return userDao.getUserDetails(integers[0]);
@@ -78,7 +74,6 @@ public class UserRepository {
         public deleteUsers(UserDao userDao) {
             this.userDao = userDao;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             userDao.deleteAllUsers();
