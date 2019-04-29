@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="20dp"
+    android:background="@color/white"
     tools:context=".Views.MainActivity">
 
     <TextView
@@ -21,16 +22,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="30dp"
+        android:background="@color/white"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/pageNoLoaded"/>
+
+    <TextView
+        android:id="@+id/noData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:text="No Data Present\nPlease check your Internet Connection."
+        android:textAlignment="center"
+        android:fontFamily="@font/regular"
+        android:textColor="#333333"
+        android:textSize="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/loadMoreProgress"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/userList"
-        app:layout_constraintVertical_bias="0.100000024" />
+        app:layout_constraintTop_toBottomOf="@+id/userList" />
 
 </android.support.constraint.ConstraintLayout>

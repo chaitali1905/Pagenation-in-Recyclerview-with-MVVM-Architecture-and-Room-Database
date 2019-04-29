@@ -11,11 +11,11 @@ import com.pe.dellinspi.Sql_RoomDatabase.TTB_Users;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class UserListViewModel extends AndroidViewModel {
+public class UserVM extends AndroidViewModel {
     private UserRepository userRepository;
     LiveData<List<TTB_Users>> allUsers;
 
-    public UserListViewModel(@NonNull Application application) {
+    public UserVM(@NonNull Application application) {
         super(application);
         userRepository = new UserRepository(application);
         allUsers = userRepository.getAllUsers();
@@ -27,6 +27,14 @@ public class UserListViewModel extends AndroidViewModel {
 
     public LiveData<List<TTB_Users>> getAllUsers() {
         return allUsers;
+    }
+
+    public TTB_Users getUser(int uid) throws ExecutionException, InterruptedException {
+        return userRepository.getUser(uid);
+    }
+
+    public void deleteAll(){
+        userRepository.deleteAllUsers();
     }
 
 }

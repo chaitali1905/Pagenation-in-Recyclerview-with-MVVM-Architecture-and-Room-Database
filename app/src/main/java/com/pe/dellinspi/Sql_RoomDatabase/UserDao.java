@@ -19,4 +19,8 @@ public interface UserDao {
     @Query("SELECT * FROM TTB_Users WHERE userId = :uid LIMIT 1")
     TTB_Users getUserDetails(int uid);
 
+    @Query("DELETE FROM TTB_Users")
+    void deleteAllUsers();
+
+
 }
