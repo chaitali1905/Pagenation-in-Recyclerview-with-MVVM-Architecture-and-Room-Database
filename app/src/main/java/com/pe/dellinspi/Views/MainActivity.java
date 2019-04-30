@@ -149,25 +149,21 @@ public class MainActivity extends AppCompatActivity {
                     if (response != null) {
                         ResponseObject responseObject = response.body();
                         if (responseObject != null && responseObject.getData() != null && responseObject.getData().size() != 0) {
-                            try {
-                                saveData(responseObject.getData());
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        if (responseObject != null && responseObject.getTotal_pages() != null && !responseObject.getTotal_pages().equals("") && responseObject.getPage() != null && !responseObject.getPage().equals("")) {
-                            if (Integer.parseInt(responseObject.getPage()) >= Integer.parseInt(responseObject.getTotal_pages())) {
+                            if (Integer.parseInt(responseObject.getPage()) <= Integer.parseInt(responseObject.getTotal_pages())) {
+                                try {
+                                    saveData(responseObject.getData());
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                pageNoLoaded.setText(pageDefaultText + responseObject.getPage() + "/" + responseObject.getTotal_pages());
+                            } else {
                                 isLoadMore = false;
-                                loadMoreProgress.setVisibility(View.GONE);
-                                return;
                             }
                         }
-                        loadMoreProgress.setVisibility(View.GONE);
-                        pageNoLoaded.setText(pageDefaultText + responseObject.getPage() + "/" + responseObject.getTotal_pages());
                     }
+                    loadMoreProgress.setVisibility(View.GONE);
                 }
 
                 @Override
